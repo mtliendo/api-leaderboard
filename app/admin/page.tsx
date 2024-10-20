@@ -7,6 +7,8 @@ import {
 	Player,
 } from '@/components/admin-leaderboard'
 import { useEffect, useState } from 'react'
+import { Navbar } from '@/components/ui/navbar'
+import { Footer } from '@/components/ui/footer'
 
 export async function listPlayers() {
 	try {
@@ -108,17 +110,22 @@ function LeaderboardWithForm() {
 	}
 
 	return (
-		<div className="container mx-auto py-10">
-			<h1 className="text-center text-4xl my-10">Leaderboard Admin</h1>
-			<div className="max-w-4xl mx-auto">
-				<AdminLeaderboardComponent
-					initialData={playerData}
-					onCreatePlayer={handleCreatePlayer}
-					onDeletePlayer={handleDeletePlayer}
-					onUpdatePlayer={handleUpdatePlayer}
-				/>
+		<>
+			<Navbar />
+
+			<div className="container mx-auto py-10">
+				<h1 className="text-center text-4xl my-10">Leaderboard Admin</h1>
+				<div className="max-w-4xl mx-auto">
+					<AdminLeaderboardComponent
+						initialData={playerData}
+						onCreatePlayer={handleCreatePlayer}
+						onDeletePlayer={handleDeletePlayer}
+						onUpdatePlayer={handleUpdatePlayer}
+					/>
+				</div>
 			</div>
-		</div>
+			<Footer />
+		</>
 	)
 }
 
