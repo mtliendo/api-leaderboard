@@ -1,7 +1,7 @@
 import type { APIGatewayProxyHandler } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb'
-import { env } from '$amplify/env/listLeaderboardFunc'
+import { env } from '$amplify/env/listPlayersFunc'
 
 // Create DynamoDB client
 const dbClient = new DynamoDBClient()
@@ -10,7 +10,7 @@ const docClient = DynamoDBDocumentClient.from(dbClient)
 export const handler: APIGatewayProxyHandler = async () => {
 	try {
 		// Scan the DynamoDB table
-		const command = new ScanCommand({ TableName: env.LEADERBOARD_TABLENAME })
+		const command = new ScanCommand({ TableName: env.PLAYERS_TABLENAME })
 		const data = await docClient.send(command)
 
 		// Return the items from the scan

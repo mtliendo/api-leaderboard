@@ -1,8 +1,8 @@
-import { APIGatewayProxyHandler } from './../../../node_modules/@types/aws-lambda/trigger/api-gateway-proxy.d'
+import { APIGatewayProxyHandler } from 'aws-lambda/trigger/api-gateway-proxy'
 // Import required AWS SDK clients and commands
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
-import { env } from '$amplify/env/updateLeaderboardFuncn'
+import { env } from '$amplify/env/updatePlayersFunc'
 
 // Create DynamoDB client
 const dbClient = new DynamoDBClient()
@@ -13,7 +13,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 	try {
 		// Parse the incoming event body
 		const body = JSON.parse(event.body!)
-		const { name, score } = body
+		const { name, score, id } = body
 
 		// Validate input data
 		if (
@@ -36,11 +36,11 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 		}
 
 		// Prepare the item to be added
-		const item = { name, score }
+		const item = { name, score, id }
 
 		// Put the item into the DynamoDB table
 		const command = new PutCommand({
-			TableName: env.LEADERBOARD_TABLENAME,
+			TableName: env.PLAYERS_TABLENAME,
 			Item: item,
 		})
 

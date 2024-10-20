@@ -1,10 +1,11 @@
-import { updateLeaderboardFunc } from './functions/updateLeaderboard/resource'
-import { listLeaderboardFunc } from './functions/listLeaderboard/resource'
-import { defineBackend } from '@aws-amplify/backend'
+import { createPlayerFunc } from './functions/createPlayer/resource'
+import { updatePlayersFunc } from './functions/updatePlayers/resource'
+import { listPlayersFunc } from './functions/listPlayers/resource'
+import { deletePlayerFunc } from './functions/deletePlayer/resource'
 import { auth } from './auth/resource'
+import { defineBackend } from '@aws-amplify/backend'
 import {
 	AuthorizationType,
-	// CognitoUserPoolsAuthorizer,
 	Cors,
 	LambdaIntegration,
 	RestApi,
@@ -18,101 +19,119 @@ import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb'
  */
 const backend = defineBackend({
 	auth,
-	listLeaderboardFunc,
-	updateLeaderboardFunc,
+	listPlayersFunc,
+	updatePlayersFunc,
+	createPlayerFunc,
+	deletePlayerFunc,
 })
 
-// create a dynamodb table
-const leaderboardTable = new Table(backend.stack, 'LeaderboardTable', {
-	partitionKey: { name: 'name', type: AttributeType.STRING },
-	sortKey: { name: 'score', type: AttributeType.NUMBER },
+const apiWithFunctionsStack = Stack.of(backend.createPlayerFunc.stack)
+const databaseStack = backend.createStack('DatabaseStack')
+const playersTable = new Table(databaseStack, 'PlayersTable', {
+	partitionKey: { name: 'id', type: AttributeType.STRING },
 })
 
-backend.listLeaderboardFunc.addEnvironment(
-	'LEADERBOARD_TABLENAME',
-	leaderboardTable.tableName
+backend.listPlayersFunc.addEnvironment(
+	'PLAYERS_TABLENAME',
+	playersTable.tableName
 )
-backend.updateLeaderboardFunc.addEnvironment(
-	'LEADERBOARD_TABLENAME',
-	leaderboardTable.tableName
+backend.updatePlayersFunc.addEnvironment(
+	'PLAYERS_TABLENAME',
+	playersTable.tableName
+)
+backend.createPlayerFunc.addEnvironment(
+	'PLAYERS_TABLENAME',
+	playersTable.tableName
+)
+backend.deletePlayerFunc.addEnvironment(
+	'PLAYERS_TABLENAME',
+	playersTable.tableName
 )
 
-leaderboardTable.grantReadData(backend.listLeaderboardFunc.resources.lambda)
-leaderboardTable.grantWriteData(backend.updateLeaderboardFunc.resources.lambda)
+playersTable.grantReadData(backend.listPlayersFunc.resources.lambda)
+playersTable.grantWriteData(backend.updatePlayersFunc.resources.lambda)
+playersTable.grantWriteData(backend.createPlayerFunc.resources.lambda)
+playersTable.grantWriteData(backend.deletePlayerFunc.resources.lambda)
 
-const leaderboardAPI = new RestApi(backend.stack, 'leaderboardAPI', {
-	restApiName: 'leaderboardAPI',
+const playersAPI = new RestApi(apiWithFunctionsStack, 'playersAPI', {
+	restApiName: 'playerAPI',
 	deployOptions: {
 		stageName: 'dev',
 	},
 	defaultCorsPreflightOptions: {
-		allowOrigins: Cors.ALL_ORIGINS, // Restrict this to domains you trust
+		allowOrigins: Cors.ALL_ORIGINS,
 	},
 })
 
 // create a new Lambda integration
-const listLeaderboardLambdaIntegration = new LambdaIntegration(
-	backend.listLeaderboardFunc.resources.lambda
+const listPlayerLambdaIntegration = new LambdaIntegration(
+	backend.listPlayersFunc.resources.lambda
 )
 
-const postLeaderboardLambdaIntegration = new LambdaIntegration(
-	backend.updateLeaderboardFunc.resources.lambda
+const postPlayerLambdaIntegration = new LambdaIntegration(
+	backend.updatePlayersFunc.resources.lambda
 )
 
-// create a new Cognito User Pools authorizer
-// const cognitoAuth = new CognitoUserPoolsAuthorizer(
-// 	backend.stack,
-// 	'CognitoAuth',
-// 	{
-// 		cognitoUserPools: [backend.auth.resources.userPool],
-// 	}
-// )
+const createPlayerLambdaIntegration = new LambdaIntegration(
+	backend.createPlayerFunc.resources.lambda
+)
+const deletePlayerLambdaIntegration = new LambdaIntegration(
+	backend.deletePlayerFunc.resources.lambda
+)
 
 // create a new resource path with IAM authorization
-const leaderboardPath = leaderboardAPI.root.addResource('leaderboard-players', {
+const playerPath = playersAPI.root.addResource('players', {
 	defaultMethodOptions: {
 		authorizationType: AuthorizationType.IAM,
-		// authorizer: cognitoAuth,
 	},
 })
 
-// add methods to the /leaderboard resource path
-leaderboardPath.addMethod('GET', listLeaderboardLambdaIntegration)
-leaderboardPath.addMethod('POST', postLeaderboardLambdaIntegration)
+// add methods to the /player resource path
+playerPath.addMethod('GET', listPlayerLambdaIntegration)
+playerPath.addMethod('POST', postPlayerLambdaIntegration)
+playerPath.addMethod('PUT', createPlayerLambdaIntegration)
+playerPath.addMethod('DELETE', deletePlayerLambdaIntegration)
 
-// create a new IAM policy to allow Invoke access to the API
-const apiRestPolicy = new Policy(backend.stack, 'RestApiPolicy', {
+const apiUnauthPolicy = new Policy(apiWithFunctionsStack, 'apiUnauthPolicy', {
+	statements: [
+		new PolicyStatement({
+			actions: ['execute-api:Invoke'],
+			resources: [`${playersAPI.arnForExecuteApi('GET', '/players', 'dev')}`],
+		}),
+	],
+})
+
+const apiAuthPolicy = new Policy(apiWithFunctionsStack, 'apiAuthPolicy', {
 	statements: [
 		new PolicyStatement({
 			actions: ['execute-api:Invoke'],
 			resources: [
-				`${leaderboardAPI.arnForExecuteApi(
-					'GET',
-					'/leaderboard-players',
-					'dev'
-				)}`,
-				`${leaderboardAPI.arnForExecuteApi(
-					'POST',
-					'/leaderboard-players',
-					'dev'
-				)}`,
+				`${playersAPI.arnForExecuteApi('GET', '/players', 'dev')}`,
+				`${playersAPI.arnForExecuteApi('POST', '/players', 'dev')}`,
+				`${playersAPI.arnForExecuteApi('PUT', '/players', 'dev')}`,
+				`${playersAPI.arnForExecuteApi('DELETE', '/players', 'dev')}`,
+				`${playersAPI.arnForExecuteApi('OPTIONS', '/players', 'dev')}`,
 			],
 		}),
 	],
 })
 
 backend.auth.resources.unauthenticatedUserIamRole.attachInlinePolicy(
-	apiRestPolicy
+	apiUnauthPolicy
+)
+
+backend.auth.resources.authenticatedUserIamRole.attachInlinePolicy(
+	apiAuthPolicy
 )
 
 // add outputs to the configuration file
 backend.addOutput({
 	custom: {
 		API: {
-			[leaderboardAPI.restApiName]: {
-				endpoint: leaderboardAPI.url,
-				region: Stack.of(leaderboardAPI).region,
-				apiName: leaderboardAPI.restApiName,
+			[playersAPI.restApiName]: {
+				endpoint: playersAPI.url,
+				region: Stack.of(playersAPI).region,
+				apiName: playersAPI.restApiName,
 			},
 		},
 	},
