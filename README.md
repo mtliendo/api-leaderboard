@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Amplify Leaderboard
 
-## Getting Started
+## Introduction
 
-First, run the development server:
+The Amplify Leaderboard is a web application that showcases the flexibility of Amplify Gen 2. It utilizes various AWS services and technologies to create a robust and scalable application.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Technologies Used
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Frontend**: The frontend is built using Amplify Gen 2, which leverages the AWS Amplify JavaScript libraries for authentication and API calls. The user interface is powered by ShadCN (Tailwind CSS) components, generated with V0 (a product of NextJS). NextJS is used to create a public home page and a protected admin section.
+- **Backend**: Instead of AWS AppSync, the Amplify Leaderboard uses API Gateway, AWS Lambda, and DynamoDB. This demonstrates how Amplify Gen 2 allows developers to drop down to the AWS CDK to create custom resources, providing greater flexibility.
+- **Authentication**: The application uses Amazon Cognito for user authentication.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The Amplify Leaderboard provides the following features:
 
-## Learn More
+1. **Amplify Gen 2 Integration**: The application showcases the flexibility of Amplify Gen 2, allowing developers to leverage AWS services while maintaining control over the infrastructure.
+2. **ShadCN and V0 for UI**: The application uses ShadCN (Tailwind CSS) components, which were generated with V0 (a NextJS product), providing a modern and responsive user interface.
+3. **NextJS for Frontend**: The application utilizes NextJS to create a public home page and a protected admin section, ensuring secure access to sensitive functionality.
+4. **Custom Backend with API Gateway, Lambda, and DynamoDB**: The Amplify Leaderboard uses API Gateway, AWS Lambda, and DynamoDB instead of AWS AppSync, demonstrating the flexibility of Amplify Gen 2.
+5. **Amazon Cognito for Authentication**: The application leverages Amazon Cognito for user authentication, ensuring secure access to the application's features.
+6. **Leaderboard API**: The application provides an API that allows users to list players, create new players, update player details, and delete players from the database.
 
-To learn more about Next.js, take a look at the following resources:
+## Contribution Guidelines
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This application is open for contributions. Before submitting a pull request, please file an issue to discuss the proposed changes.
