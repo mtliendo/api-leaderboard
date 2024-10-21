@@ -49,6 +49,10 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 				name,
 				score,
 			},
+			ConditionExpression: 'attribute_not_exists(#id)',
+			ExpressionAttributeNames: {
+				'#id': 'id',
+			},
 		}
 
 		await docClient.send(new PutCommand(params))

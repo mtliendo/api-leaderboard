@@ -92,20 +92,15 @@ function LeaderboardWithForm() {
 	}, [])
 
 	const handleCreatePlayer = async (newPlayer: Player) => {
-		console.log('the player', newPlayer)
-		const res = await addNewPlayer(newPlayer)
-		console.log('the res', res)
+		await addNewPlayer(newPlayer)
 	}
 
 	const handleDeletePlayer = async (playerId: string) => {
-		console.log('the player id', playerId)
 		const res = await deletePlayerFunc(playerId)
-		console.log('the res', res)
 		return res
 	}
 
 	const handleUpdatePlayer = async (player: Player) => {
-		console.log('the player', player)
 		await updatePlayer(player)
 	}
 
